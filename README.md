@@ -12,19 +12,19 @@ Fitur yang kami kerjakan antara lain
 - Mengubah harga menu
 - Menghapus menu
 
-3. Transaksi Penjualan
+2. Transaksi Penjualan
 - Input pesanan (menu & jumlah)
 - Menghitung subtotal tiap item
 - Menghitung total belanja
 - Input uang pembayaran
 - Menghitung kembalian
 
-5. Penyimpanan Data
+3. Penyimpanan Data
 - Data menu disimpan dalam file
 - Data transaksi disimpan dalam file terpisah
 - Format file bebas (.txt atau .csv)
 
-7. Laporan Penjualan
+4. Laporan Penjualan
 - Menampilkan daftar transaksi
 - Menampilkan total pendapatan
 - Menampilkan jumlah transaksi
