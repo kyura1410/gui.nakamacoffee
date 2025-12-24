@@ -15,40 +15,90 @@ PENGGUNAAN REFERNSI MATERI
 sc:
 """
 
+import csv
+import os
 import tkinter as tk
-from tkinter import messagebox  
-from tkinter.messagebox import showinfo
+from tkinter import ttk, messagebox
 
-# Membuat jendela utama
-window = tk.Tk()
-window.title("Nakama Coffee Shop")
-window.geometry("550x550")
-window.resizable(False, False)
-window.config(bg="#1d1d12")
+class POSNakamaCoffee:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Nakama Coffee Shop - nongki sambil ngopi with nakama")
+        self.root.geometry("600x400")
+        self.root.resizable(False, False)
+        self.root.config(bg="#1d1d12")
+        self.fontstyle = ("Montserrat", 12, "normal")
+        self.fontstyle_bold = ("Montserrat", 12, "bold")
+        
+        # Ambil data menu dari database .csv
+        self.menu_items = self.load_menu()
+        
+        # Header Label
+        tk.Label(root, text="-- Daftar Menu --", font=("Montserrat", 18, "bold"), bg="#1d1d12", fg="white").pack(pady=10)
+        
+        # Tabel/List untuk menampilkan menu
+        self.tree = ttk.Treeview(root, columns=("Nama", "Harga"), show='headings', height=10)
+        self.tree.heading("Nama", text="Nama Menu")
+        self.tree.heading("Harga", text="Harga")
+        self.tree.pack(pady=10)
+        
+        for item in self.menu_items:
+            self.tree.insert("", tk.END, values=(item['nama'], item['harga']))
 
-# Styling teks dan warna
-fontstyle = ("Montserrat", 12)
-fontstyle_bold = ("Montserrat", 12, "bold")
-fontstyle_header = ("Montserrat", 20, "bold")
-berhasilAddOrder = "Berhasil, Menambahkan Pesanan!"
+        # Buttons
+        tk.Button(root, text="Buat Transaksi",
+                  font=self.fontstyle_bold,
+                  command=self.buka_transaksi,
+                  bg="#F3E5AB", fg="black").pack(side=tk.LEFT, padx=50)
+        tk.Button(root, text="Keluar Aplikasi",
+                  font=self.fontstyle_bold,
+                  command=self.konfirmasi_keluar,
+                  bg="#F3E5AB", fg="black").pack(side=tk.RIGHT, padx=50)
 
-# Definisi fungsi-fungsi
+    # Definisi fungsi-fungsi
+    def load_menu(self):
+        data = []
+        try:
+            with open('db\menu.csv', mode='r') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    data.append(row)
+        except FileNotFoundError:
+            messagebox.showerror("Error", "menu.csv tidak ditemukan!")
+        return data
 
+    def konfirmasi_keluar(self):
+        tanya = messagebox.askyesno("Konfirmasi", "Apakah Anda yakin ingin menutup aplikasi?")
+        if tanya:
+            self.root.destroy() # hentikan program
 
-# Frame
+    def buka_transaksi(self):
+        messagebox.showinfo("Info", "Membuka jendela transaksi...")
+    
+    def set_tabel(self):
+        style = ttk.Style()
+        style.theme_use("default")
+        style.configure("Treeview.Heading", font=self.fontstyle_bold)
+        style.configure("Treeview", rowheight=35, font=self.fontstyle)
 
-# Widget
-header = tk.Label(window, 
-                  text="-- Nakama Coffee --", 
-                  font=fontstyle_header, 
-                  bg="#1d1d12", 
-                  fg="#F9E7B2")
-deskripsi = tk.Label(window, 
-                     text="nongki sambil ngopi with nakama",
-                     font=fontstyle, 
-                     bg="#1d1d12",
-                     fg="#F9E7B2")
-header.pack(pady=0)
-deskripsi.pack(pady=0)
+        # frame
+        anjay = tk.Frame(self.root, bg="#1a1a1a")
+        anjay.pack(pady=20)
 
-window.mainloop()
+        sb = tk.Scrollbar(anjay)
+        sb.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.tree = ttk.Treeview(anjay, columns=("Nama", "Harga"), 
+        show='headings', yscrollcommand=sb.set)
+        
+        # Atur lebar kolom
+        self.tree.column("Nama", width=300, anchor="w") # Nama menu rata kiri
+        self.tree.column("Harga", width=150, anchor="center") # Harga di tengah
+        
+        self.tree.pack()
+        sb.config(command=self.tree.yview)
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = POSNakamaCoffee(root)
+    root.mainloop()
