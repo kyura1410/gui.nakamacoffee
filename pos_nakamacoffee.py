@@ -20,108 +20,84 @@ import os
 import tkinter as tk
 from tkinter import ttk, messagebox
 
-DB_PATH = "db/menu.csv"
+file_menu = "db/menu.csv"
+file_transaksi = "db/transaksi.csv"
+font_utama = ("Montserrat", 12)
+font_utama_bold = ("Montserrat", 12, "bold")
 
+def cek_csv():
+    if not os.path.exists(file_menu):
+        with open(file_menu, mode="w", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow(["nama", "harga", "stok"])
+            writer.writerow(["Espresso", "15000", "10"])
+        
+    if not os.path.exists(file_transaksi):
+        with open(file_transaksi, mode="w", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow(["no transaksi", "tanggal", "detail", "total"])
 
-class POSNakamaCoffee:
-
-    def init_file(self):
-        os.makedirs("db", exist_ok=True)
-        if not os.path.exists(DB_PATH):
-            with open(DB_PATH, mode="w", newline="") as file:
-                writer = csv.writer(file)
-                writer.writerow(["nama", "harga"])
-                                                                           # Line 28-43 Angga Kurniawan
-    def load_menu(self):
-        if not os.path.exists(DB_PATH):
+def load_menu():
+        if not os.path.exists(file_menu):
             return[]
         items = []
-        with open(DB_PATH, mode="r", newline="") as file:
+        with open(file_menu, mode="r", newline="") as file:
             reader = csv.DictReader(file)
             for row in reader:
                 items.append(row)
         return items
-    
+
+class POSNakamaCoffee:
     def __init__(self, root):
         self.root = root
-        self.init_file()
-        self.menu_items = self.load_menu()
-        self.root.title("Nakama Coffee Shop - nongki sambil ngopi with nakama")
-        self.root.geometry("600x400")
-        self.root.resizable(False, False)
-        self.root.config(bg="#1d1d12")
-        self.fontstyle = ("Montserrat", 12, "normal")
-        self.fontstyle_bold = ("Montserrat", 12, "bold")
-        
-        # Ambil data menu dari database .csv
-        self.menu_items = self.load_menu()
-        
-        # Header Label
-        tk.Label(root, text="-- Daftar Menu --", font=("Montserrat", 18, "bold"), bg="#1d1d12", fg="white").pack(pady=10)
-        
-        # Tabel/List untuk menampilkan menu
-        self.tree = ttk.Treeview(root, columns=("Nama", "Harga"), show='headings', height=10)
-        self.tree.heading("Nama", text="Nama Menu")
-        self.tree.heading("Harga", text="Harga")
-        self.tree.pack(pady=10)
-        
-        for item in self.menu_items:
-            self.tree.insert("", tk.END, values=(item['nama'], item['harga']))
+        self.root.title("POS Kedai Kopi Nakama")
+        self.root.geometry("900x600")
 
-        # Buttons
-        tk.Button(root, text="Buat Transaksi",
-                  font=self.fontstyle_bold,
-                  command=self.buka_transaksi,
-                  bg="#F3E5AB", fg="black").pack(side=tk.LEFT, padx=50)
-        tk.Button(root, text="Keluar Aplikasi",
-                  font=self.fontstyle_bold,
-                  command=self.konfirmasi_keluar,
-                  bg="#F3E5AB", fg="black").pack(side=tk.RIGHT, padx=50)
+        self.keranjang = []
 
-    # Definisi fungsi-fungsi
-    def load_menu(self):
-        data = []
-        try:
-            with open('db\menu.csv', mode='r') as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    data.append(row)
-        except FileNotFoundError:
-            messagebox.showerror("Error", "menu.csv tidak ditemukan!")
-        return data
+        self.atur_tab = ttk.Notebook(root)
+        self.tab_kasir = ttk.Frame(self.atur_tab)
+        self.tab_admin = ttk.Frame(self.atur_tab)
+        self.tab_riwayat = ttk.Frame(self.atur_tab)
 
-    def konfirmasi_keluar(self):
-        tanya = messagebox.askyesno("Konfirmasi", "Apakah Anda yakin ingin menutup aplikasi?")
-        if tanya:
-            self.root.destroy() # hentikan program
+        self.atur_tab.add(self.tab_kasir, text="Kasir")
+        self.atur_tab.add(self.tab_admin, text="Admin")
+        self.atur_tab.add(self.tab_riwayat, text="Riwayat Transaksi")
+        self.atur_tab.pack(expand=1, fill="both")
 
-    def buka_transaksi(self):
-        messagebox.showinfo("Info", "Membuka jendela transaksi...")
-    
-    def set_tabel(self):
-        style = ttk.Style()
-        style.theme_use("default")
-        style.configure("Treeview.Heading", font=self.fontstyle_bold)
-        style.configure("Treeview", rowheight=35, font=self.fontstyle)
+        self.tampilkan_kasir()
 
-        # frame
-        anjay = tk.Frame(self.root, bg="#1a1a1a")
-        anjay.pack(pady=20)
+    def tampilkan_kasir(self):
+        frame_kiri = tk.Frame(self.tab_kasir, padx=10, pady=10)
+        frame_kiri.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        frame_kanan = tk.Frame(self.tab_kasir, padx=10, pady=10, bg="#f0f0f0")
+        frame_kanan.pack(side=tk.RIGHT, fill=tk.BOTH)
 
-        sb = tk.Scrollbar(anjay)
-        sb.pack(side=tk.RIGHT, fill=tk.Y)
+        tk.Label(frame_kiri, text="Nakama Coffee Shop:", font=font_utama_bold).pack(pady=5)
+        tk.Label(frame_kanan, text="Keranjang Belanja:", font=font_utama_bold, bg="#f0f0f0").pack(pady=5)
 
-        self.tree = ttk.Treeview(anjay, columns=("Nama", "Harga"), 
-        show='headings', yscrollcommand=sb.set)
-        
-        # Atur lebar kolom
-        self.tree.column("Nama", width=300, anchor="w") # Nama menu rata kiri
-        self.tree.column("Harga", width=150, anchor="center") # Harga di tengah
-        
-        self.tree.pack()
-        sb.config(command=self.tree.yview)
+        kolom_menu = ("Nama", "Harga", "Stok")
+        self.tree_menu_kasir = ttk.Treeview(frame_kiri, columns=kolom_menu, show="headings", height=15)
+        for kolom in kolom_menu:
+            self.tree_menu_kasir.heading(kolom, text=kolom)
+            self.tree_menu_kasir.column(kolom)
+        self.tree_menu_kasir.pack(pady=10)
+
+        nambah_tombol = tk.Button(frame_kiri, text="Tambah ke Keranjang", font=font_utama, bg="#4CAF50", fg="white",)
+        nambah_tombol.pack(fill=tk.X, pady=5)
+
+        kolom_keranjang = ("Item", "Qty", "Subtotal")
+        self.tree_keranjang = ttk.Treeview(frame_kanan, columns=kolom_keranjang, show="headings", height=15)
+        for kolom in kolom_keranjang:
+            self.tree_keranjang.heading(kolom, text=kolom)
+            self.tree_keranjang.column(kolom)
+        self.tree_keranjang.pack(pady=10)
+
+        self.label_total = tk.Label(frame_kanan, text="Total: Rp 0", font=font_utama_bold, bg="#f0f0f0")
+        self.label_total.pack(pady=5)
 
 if __name__ == "__main__":
+    cek_csv()
     root = tk.Tk()
     app = POSNakamaCoffee(root)
     root.mainloop()
