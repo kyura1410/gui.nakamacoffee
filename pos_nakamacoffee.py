@@ -25,6 +25,11 @@ file_transaksi = "db/transaksi.csv"
 font_utama = ("Montserrat", 12)
 font_utama_bold = ("Montserrat", 12, "bold")
 
+USER_LOGIN = {
+    "admin": "admin123"
+
+}
+
 def cek_csv():
     if not os.path.exists(file_menu):
         with open(file_menu, mode="w", newline="") as file:
@@ -47,6 +52,33 @@ def load_menu():
                 items.append(row)
         return items
 
+
+class LoginWindow:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Login POS Nakama")
+        self.root.geometry("300x200")
+
+        tk.Label(root, text="Username").pack(pady=5)
+        self.entry_user = tk.Entry(root)
+        self.entry_user.pack()
+
+        tk.Label(root, text="Password").pack(pady=5)
+        self.entry_pass = tk.Entry(root, show="*")
+        self.entry_pass.pack()
+
+        tk.Button(root, text="Login", command=self.login).pack(pady=10)
+
+    def login(self):
+        user = self.entry_user.get()
+        pw = self.entry_pass.get()
+
+        if user in USER_LOGIN and USER_LOGIN[user] == pw:
+            self.root.destroy()
+            main_app()
+        else:
+            messagebox.showerror("Login Gagal", "Username atau Password salah")
+            
 class POSNakamaCoffee:
     def __init__(self, root):
         self.root = root
@@ -73,7 +105,6 @@ class POSNakamaCoffee:
         frame_kanan = tk.Frame(self.tab_kasir, padx=10, pady=10, bg="#f0f0f0")
         frame_kanan.pack(side=tk.RIGHT, fill=tk.BOTH)
 
-        tk.Label(frame_kiri, text="Nakama Coffee Shop:", font=font_utama_bold).pack(pady=5)
         tk.Label(frame_kanan, text="Keranjang Belanja:", font=font_utama_bold, bg="#f0f0f0").pack(pady=5)
 
         kolom_menu = ("Nama", "Harga", "Stok")
@@ -96,8 +127,13 @@ class POSNakamaCoffee:
         self.label_total = tk.Label(frame_kanan, text="Total: Rp 0", font=font_utama_bold, bg="#f0f0f0")
         self.label_total.pack(pady=5)
 
+def main_app():
+   root = tk.Tk()
+   app = POSNakamaCoffee(root)
+   root.mainloop()
+
 if __name__ == "__main__":
     cek_csv()
-    root = tk.Tk()
-    app = POSNakamaCoffee(root)
-    root.mainloop()
+    login_root = tk.Tk()
+    LoginWindow(login_root)
+    login_root.mainloop()
