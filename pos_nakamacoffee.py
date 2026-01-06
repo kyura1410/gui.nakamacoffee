@@ -5,7 +5,7 @@ Kelompok 1
 NAMA ANGGOTA KELOMPOK:
 1. Nyoman Ardhi Rahmayana (02560001)
 2. Gede Angga Kurniawan Saputra (02560003)
-3. Gede Angga Wijaya Kusuma ()
+3. I Made Angga Wijaya Kusuma (02560002)
 
 PENGGUNAAN AI GEMINI (Ardhi)
 Mendiskuikan alur flowchart, treeview, csv database, notebook, dan beberapa fungsi dasar.
@@ -17,7 +17,7 @@ PENGGUNAAN AI GPT 5 (Angga Kurniawan)
 import csv
 import os
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, simpledialog
 from datetime import datetime
 
 file_menu = "db/menu.csv"
@@ -27,8 +27,11 @@ font_utama_bold = ("Montserrat", 12, "bold")
 
 USER_LOGIN = {
     "admin": "admin123"
-
 }
+
+# Fungsi helper untuk format mata uang
+def format_mata_uang(angka):
+    return f"Rp. {angka:,.0f}".replace(",", ".")
 
 # fokus pengelolaan database menu dan transaksi dalam file CSV
 
@@ -157,10 +160,10 @@ class POSNakamaCoffee:
         
         item = nakama.tree_menu_kasir.item(terpilih)
         nama = item['values'][0]
-        harga = int(item['values'][1])
+        harga = int(item['values'][1].replace("Rp. ", "").replace(".", ""))  # Parse harga dari format
         stok = int(item['values'][2])
 
-        if stok <- 0:
+        if stok <= 0:
             messagebox.showwarning("Peringatan", "Stok item ini habis.")
             return
         
@@ -170,10 +173,8 @@ class POSNakamaCoffee:
                 nakama.keranjang[i]['Subtotal'] += harga
                 nakama.update_tabel_keranjang()
                 return
-            else:
-                messagebox.showwarning("Info", "Item ditambahkan ke keranjang.")
-                return
-
+        
+        # Jika item belum ada di keranjang, tambahkan
         nakama.keranjang.append({'Nama': nama, 'Harga': harga, 'Qty': 1, 'Subtotal': harga})
         nakama.update_tabel_keranjang()
 
@@ -183,10 +184,10 @@ class POSNakamaCoffee:
 
         total_bayar = 0
         for barang in nakama.keranjang:
-            nakama.tree_keranjang.insert("", tk.END, values=(barang['Nama'], barang['Qty'], barang['Subtotal']))
+            nakama.tree_keranjang.insert("", tk.END, values=(barang['Nama'], barang['Qty'], format_mata_uang(barang['Subtotal'])))
             total_bayar += barang['Subtotal']
 
-        nakama.label_total.config(text=f"Total: Rp {total_bayar}")
+        nakama.label_total.config(text=f"Total: {format_mata_uang(total_bayar)}")
 
     def reset_keranjang(nakama):
         nakama.keranjang = []
@@ -199,15 +200,26 @@ class POSNakamaCoffee:
 
         total_bayar = sum(barang['Subtotal'] for barang in nakama.keranjang)
         
+        # Input uang pembeli
+        uang_pembeli = simpledialog.askinteger("Input Uang Pembeli", f"Total bayar: {format_mata_uang(total_bayar)}\nMasukkan jumlah uang pembeli (dalam Rupiah):")
+        if uang_pembeli is None:
+            return  # Batal
+        
+        if uang_pembeli < total_bayar:
+            messagebox.showerror("Error", "Uang pembeli kurang dari total bayar!")
+            return
+        
+        kembalian = uang_pembeli - total_bayar
+        
         menu_sekarang = baca_menu()
         detail_id_nota = ""
 
         for barang in nakama.keranjang:
-            detail_id_nota += f"{barang['Nama']} x {barang['Qty']}"
+            detail_id_nota += f"{barang['Nama']} x {barang['Qty']}, "
             for menu_item in menu_sekarang:
                 if menu_item['Nama'] == barang['Nama']:
                     stok_baru = int(menu_item['Stok']) - barang['Qty']
-                    menu_item['Stok'] = stok_baru
+                    menu_item['Stok'] = str(stok_baru)
 
         simpan_menu_database(menu_sekarang)
 
@@ -219,9 +231,11 @@ class POSNakamaCoffee:
         nota += f"Tanggal: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
         nota += "-"*30 + "\n"
         for item in nakama.keranjang:
-            nota += f"{item['Nama']} \t x{item['Qty']} \t = Rp. {item['Subtotal']}\n"
+            nota += f"{item['Nama']} \t x{item['Qty']} \t = {format_mata_uang(item['Subtotal'])}\n"
         nota += "-"*30 + "\n"
-        nota += f"Total Bayar: \t\t Rp. {total_bayar}\n"
+        nota += f"Total Bayar: \t\t {format_mata_uang(total_bayar)}\n"
+        nota += f"Uang Pembeli: \t\t {format_mata_uang(uang_pembeli)}\n"
+        nota += f"Kembalian: \t\t {format_mata_uang(kembalian)}\n"
         nota += "Terima kasih telah berbelanja di Nakama Coffee Shop!"
 
         messagebox.showinfo("Struk Pembayaran", nota)
@@ -233,7 +247,8 @@ class POSNakamaCoffee:
             nakama.tree_menu_kasir.delete(baris)
         menu = baca_menu()
         for item in menu:
-            nakama.tree_menu_kasir.insert('', tk.END, values=(item['Nama'], item['Harga'], item['Stok']))
+            harga_formatted = format_mata_uang(int(item['Harga']))
+            nakama.tree_menu_kasir.insert('', tk.END, values=(item['Nama'], harga_formatted, item['Stok']))
 
 def main_app():
    root = tk.Tk()
