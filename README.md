@@ -1,7 +1,7 @@
 # Kelompok 1
 1. Nyoman Ardhi Rahmayana (02560001)
 2. Gede Angga Kurniawan Saputra (02560003)
-3. Gede Angga Wijaya Kusuma ()
+3. Gede Angga Wijaya Kusuma (02560002)
 
 # Fitur POS Nakama Coffee
 Fitur yang kami kerjakan antara lain
