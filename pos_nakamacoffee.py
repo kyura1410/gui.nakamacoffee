@@ -122,7 +122,20 @@ class POSNakamaCoffee:
         frame_kanan.pack(side=tk.RIGHT, fill=tk.BOTH)
 
         tk.Label(frame_kiri, text="Menu Kedai Kopi:", font=font_utama_bold).pack(pady=5)
+        
+        # --- FITUR PENCARIAN BARU ---
+        frame_cari = tk.Frame(frame_kiri)
+        frame_cari.pack(fill=tk.X, pady=5)
+        
+        tk.Label(frame_cari, text="Cari Menu: ", font=font_utama).pack(side=tk.LEFT)
+        nakama.entry_cari = tk.Entry(frame_cari, font=font_utama)
+        nakama.entry_cari.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+        
+        # Event binding agar pencarian otomatis saat mengetik
+        nakama.entry_cari.bind("<KeyRelease>", lambda event: nakama.refresh_tabel_menu())
+        
         tk.Label(frame_kanan, text="Keranjang Belanja:", font=font_utama_bold, bg="#f0f0f0").pack(pady=5)
+  
 
         kolom_menu = ("Nama", "Harga", "Stok")
         nakama.tree_menu_kasir = ttk.Treeview(frame_kiri, columns=kolom_menu, show="headings", height=15)
@@ -243,12 +256,20 @@ class POSNakamaCoffee:
         nakama.reset_keranjang()
 
     def refresh_tabel_menu(nakama):
+        # Ambil kata kunci dari entry pencarian (jika ada)
+        kata_kunci = nakama.entry_cari.get().lower() if hasattr(nakama, 'entry_cari') else ""
+        
+        # Bersihkan tabel sebelum diisi ulang
         for baris in nakama.tree_menu_kasir.get_children():
             nakama.tree_menu_kasir.delete(baris)
+
         menu = baca_menu()
         for item in menu:
-            harga_formatted = format_mata_uang(int(item['Harga']))
-            nakama.tree_menu_kasir.insert('', tk.END, values=(item['Nama'], harga_formatted, item['Stok']))
+            
+            #Filter: jika nama menu mengandung kata kunci
+            if kata_kunci in item['Nama'].lower():
+                harga_formatted = format_mata_uang(int(item['Harga']))
+                nakama.tree_menu_kasir.insert('', tk.END, values=(item['Nama'], harga_formatted, item['Stok']))
 
 def main_app():
    root = tk.Tk()
