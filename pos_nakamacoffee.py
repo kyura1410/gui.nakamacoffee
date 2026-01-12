@@ -399,13 +399,6 @@ class POSNakamaCoffee:
         menu = baca_menu()
         for item in menu:
             nakama.tree_admin.insert('', tk.END, values=(item['Nama'], item['Harga'], item['Stok']))
-    
-    def refresh_tabel_menu(nakama):
-        for baris in nakama.tree_menu_kasir.get_children():
-            nakama.tree_menu_kasir.delete(baris)
-        menu = baca_menu()
-        for item in menu:
-            nakama.tree_menu_kasir.insert('', tk.END, values=(item['Nama'], item['Harga'], item['Stok']))
 
     def clear_form_admin(nakama):
         nakama.entry_nama.delete(0, tk.END)
