@@ -3,15 +3,15 @@ POS KEDAI KOPI NAKAMA
 Kelompok 1
 
 NAMA ANGGOTA KELOMPOK:
-1. Nyoman Ardhi Rahmayana (02560001)
-2. Gede Angga Kurniawan Saputra (02560003)
-3. I Made Angga Wijaya Kusuma (02560002)
+1. Nyoman Ardhi Rahmayana (02560001) - UI/UX Designer, 
+2. Gede Angga Kurniawan Saputra (02560003) - Fitur Login, Query Database
+3. I Made Angga Wijaya Kusuma (02560002) -  Fitur Transaksi, Database Management, Nominal Mata Uang
 
 PENGGUNAAN AI GEMINI (Ardhi)
 Mendiskuikan alur flowchart, treeview, csv database, notebook, dan beberapa fungsi dasar.
 
 PENGGUNAAN AI GPT 5 (Angga Kurniawan)
-
+mendiskusikan debugging alur login, query database
 """
 
 import csv
@@ -20,13 +20,13 @@ import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
 from datetime import datetime
 
-file_menu = "db/menu.csv"
-file_transaksi = "db/transaksi.csv"
+file_menu = "db\\menu.csv"
+file_transaksi = "db\\transaksi.csv"
 font_utama = ("Montserrat", 12)
 font_utama_bold = ("Montserrat", 12, "bold")
 
 USER_LOGIN = {
-    "admin": "admin123"
+    "1": "1"
 }
 
 # Fungsi helper untuk format mata uang
@@ -34,7 +34,6 @@ def format_mata_uang(angka):
     return f"Rp. {angka:,.0f}".replace(",", ".")
 
 # fokus pengelolaan database menu dan transaksi dalam file CSV
-
 def baca_menu():
     menu = []
     if os.path.exists(file_menu):
@@ -114,6 +113,8 @@ class POSNakamaCoffee:
         nakama.atur_tab.pack(expand=1, fill="both")
 
         nakama.tampilkan_kasir()
+        nakama.tampilkan_admin()
+        nakama.tampilkan_riwayat()
 
     def tampilkan_kasir(nakama):
         frame_kiri = tk.Frame(nakama.tab_kasir, padx=10, pady=10)
@@ -134,33 +135,59 @@ class POSNakamaCoffee:
         # Event binding agar pencarian otomatis saat mengetik
         nakama.entry_cari.bind("<KeyRelease>", lambda event: nakama.refresh_tabel_menu())
         
-        tk.Label(frame_kanan, text="Keranjang Belanja:", font=font_utama_bold, bg="#f0f0f0").pack(pady=5)
+        tk.Label(frame_kanan, 
+                 text="Keranjang Belanja:", 
+                 font=font_utama_bold, 
+                 bg="#f0f0f0").pack(pady=5)
   
 
         kolom_menu = ("Nama", "Harga", "Stok")
-        nakama.tree_menu_kasir = ttk.Treeview(frame_kiri, columns=kolom_menu, show="headings", height=15)
+        nakama.tree_menu_kasir = ttk.Treeview(frame_kiri,
+                                              columns=kolom_menu, 
+                                              show="headings", 
+                                              height=15)
         for kolom in kolom_menu:
             nakama.tree_menu_kasir.heading(kolom, text=kolom)
             nakama.tree_menu_kasir.column(kolom)
         nakama.tree_menu_kasir.pack(fill=tk.BOTH, expand=True)
 
-        nambah_tombol = tk.Button(frame_kiri, text="Tambah ke Keranjang", command=nakama.tambah_ke_keranjang, bg="#4CAF50", fg="white",)
+        nambah_tombol = tk.Button(frame_kiri, text="Tambah ke Keranjang",
+                                  command=nakama.tambah_ke_keranjang,
+                                  font=font_utama_bold,
+                                  bg="#114F13",
+                                  fg="white",)
         nambah_tombol.pack(fill=tk.X, pady=5)
 
         kolom_keranjang = ("Item", "Qty", "Subtotal")
-        nakama.tree_keranjang = ttk.Treeview(frame_kanan, columns=kolom_keranjang, show="headings", height=15)
+        nakama.tree_keranjang = ttk.Treeview(frame_kanan, 
+                                             columns=kolom_keranjang, 
+                                             show="headings", 
+                                             height=15)
         for kolom in kolom_keranjang:
             nakama.tree_keranjang.heading(kolom, text=kolom)
             nakama.tree_keranjang.column(kolom)
         nakama.tree_keranjang.pack(pady=10)
 
-        nakama.label_total = tk.Label(frame_kanan, text="Total: Rp 0", font=font_utama_bold, bg="#f0f0f0")
+        nakama.label_total = tk.Label(frame_kanan, 
+                                      text="Total: Rp 0", 
+                                      font=font_utama_bold, 
+                                      bg="#f0f0f0")
         nakama.label_total.pack(pady=5)
 
-        tombol_reset = tk.Button(frame_kanan, text="Reset Keranjang", command=nakama.reset_keranjang, font=font_utama, bg="#4c4a0d", fg="white")
+        tombol_reset = tk.Button(frame_kanan,
+                                 text="Reset Keranjang", 
+                                 command=nakama.reset_keranjang, 
+                                 font=font_utama_bold, 
+                                 bg="#4c4a0d", 
+                                 fg="white")
         tombol_reset.pack(fill=tk.X, pady=2)
 
-        tombol_bayar = tk.Button(frame_kanan, text="Proses Pembayaran", command=nakama.proses_pembayaran, font=font_utama_bold, bg="#2196F3", fg="white")
+        tombol_bayar = tk.Button(frame_kanan, 
+                                 text="Proses Pembayaran", 
+                                 command=nakama.proses_pembayaran, 
+                                 font=font_utama_bold, 
+                                 bg="#254055", 
+                                 fg="white")
         tombol_bayar.pack(fill=tk.X, pady=2)
 
         nakama.refresh_tabel_menu()
@@ -235,6 +262,10 @@ class POSNakamaCoffee:
                     menu_item['Stok'] = str(stok_baru)
 
         simpan_menu_database(menu_sekarang)
+        nakama.refresh_tabel_menu()
+        nakama.refresh_tabel_riwayat()
+        nakama.refresh_tabel_admin()
+
 
         id_nota = f"No. {int(datetime.now().timestamp())}"
         simpan_transaksi_database(id_nota, detail_id_nota.strip(", "), total_bayar)
@@ -254,6 +285,9 @@ class POSNakamaCoffee:
         messagebox.showinfo("Struk Pembayaran", nota)
 
         nakama.reset_keranjang()
+        nakama.refresh_tabel_menu()
+        nakama.refresh_tabel_riwayat()
+        nakama.refresh_tabel_admin()
 
     def refresh_tabel_menu(nakama):
         # Ambil kata kunci dari entry pencarian (jika ada)
@@ -264,12 +298,218 @@ class POSNakamaCoffee:
             nakama.tree_menu_kasir.delete(baris)
 
         menu = baca_menu()
+        #   print(f"DEBUG: Total menu terbaca: {len(menu)}") # <--- TAMBAHKAN INI
+        #   print(f"DEBUG: Isi menu pertama: {menu[0] if menu else 'Kosong'}") # <--- TAMBAHKAN INI
+
         for item in menu:
             
             #Filter: jika nama menu mengandung kata kunci
             if kata_kunci in item['Nama'].lower():
                 harga_formatted = format_mata_uang(int(item['Harga']))
                 nakama.tree_menu_kasir.insert('', tk.END, values=(item['Nama'], harga_formatted, item['Stok']))
+
+    # menampilkan halaman admin
+    def tampilkan_admin(nakama):
+        frame_input = tk.Frame(nakama.tab_admin,
+                               padx=10,
+                               pady=10)
+        frame_input.pack(side=tk.TOP, fill=tk.X)
+
+        tk.Label(frame_input, text="Nama Menu:").grid(row=0,
+                                                      column=0, 
+                                                      padx=5,
+                                                      pady=5)
+        nakama.entry_nama = tk.Entry(frame_input)
+        nakama.entry_nama.grid(row=0,
+                               column=1,
+                               padx=5,
+                               pady=5)
+
+        tk.Label(frame_input, text="Harga:").grid(row=0,
+                                                  column=2,
+                                                  padx=5,
+                                                  pady=5)
+        
+        nakama.entry_harga = tk.Entry(frame_input)
+        nakama.entry_harga.grid(row=0,
+                                column=3,
+                                padx=5,
+                                pady=5)
+
+        tk.Label(frame_input, text="Stok:").grid(row=0,
+                                                 column=4,
+                                                 padx=5, 
+                                                 pady=5)
+        nakama.entry_stok = tk.Entry(frame_input)
+        nakama.entry_stok.grid(row=0, column=5, padx=5, pady=5)
+
+        tombol_simpan = tk.Button(frame_input,
+                                  text="SImpan/Update Menu",
+                                  command=nakama.simpan_menu_admin,
+                                  bg="#1E5420",
+                                  fg="white")
+        tombol_simpan.grid(row=1,
+                           column=0,
+                           columnspan=2,
+                           sticky="ew",
+                           padx=5,
+                           pady=5)
+        
+        tombol_hapus = tk.Button(frame_input,
+                                 text="Hapus Menu Terpilih",
+                                 command=nakama.hapus_menu_admin,
+                                 bg="#5f1e1a",
+                                 fg="white")
+        tombol_hapus.grid(row=1,
+                           column=2,
+                           columnspan=2,
+                           sticky="ew",
+                           padx=5,
+                           pady=5)
+        tombol_clear = tk.Button(frame_input,
+                                 text="Bersihkan Input",
+                                 command=nakama.clear_form_admin,
+                                 bg="#18588B",
+                                 fg="white")
+        tombol_clear.grid(row=1,
+                          column=4,
+                          columnspan=2,
+                          sticky="ew",
+                          padx=5,
+                          pady=5)
+        
+        nakama.tree_admin = ttk.Treeview(nakama.tab_admin,
+                                        columns=('Nama', 'Harga', 'Stok'),
+                                        show='headings')
+        nakama.tree_admin.heading('Nama', text='Nama')
+        nakama.tree_admin.heading('Harga', text='Harga')
+        nakama.tree_admin.heading('Stok', text='Stok')
+        nakama.tree_admin.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        nakama.tree_admin.bind('<<TreeviewSelect>>', nakama.pilih_baris_admin)
+
+        nakama.refresh_tabel_admin()
+
+    def refresh_tabel_admin(nakama):
+        for baris in nakama.tree_admin.get_children():
+            nakama.tree_admin.delete(baris)
+        menu = baca_menu()
+        for item in menu:
+            nakama.tree_admin.insert('', tk.END, values=(item['Nama'], item['Harga'], item['Stok']))
+    
+    def refresh_tabel_menu(nakama):
+        for baris in nakama.tree_menu_kasir.get_children():
+            nakama.tree_menu_kasir.delete(baris)
+        menu = baca_menu()
+        for item in menu:
+            nakama.tree_menu_kasir.insert('', tk.END, values=(item['Nama'], item['Harga'], item['Stok']))
+
+    def clear_form_admin(nakama):
+        nakama.entry_nama.delete(0, tk.END)
+        nakama.entry_harga.delete(0, tk.END)
+        nakama.entry_stok.delete(0, tk.END)
+
+    def pilih_baris_admin(nakama, event):
+        terpilih = nakama.tree_admin.selection()
+        if terpilih:
+            item = nakama.tree_admin.item(terpilih)
+            stok = item['values']
+            nakama.clear_form_admin()
+            nakama.entry_nama.insert(0, stok[0])
+            nakama.entry_harga.insert(0, stok[1])
+            nakama.entry_stok.insert(0, stok[2])
+
+    def simpan_menu_admin(nakama):
+        nama = nakama.entry_nama.get()
+        harga = nakama.entry_harga.get()
+        stok = nakama.entry_stok.get()
+
+        if not nama or not harga or not stok:
+            messagebox.showwarning("Peringatan", "Semua kolom harus diisi!")
+            return
+        
+        try:
+            int(harga)
+            int(stok)
+        except ValueError:
+            messagebox.showerror("Error", "Harga dan Stok harus berupa angka!")
+            return
+        
+        menu = baca_menu()
+        update_baris = False
+
+        for item in menu:
+            if item['Nama'].lower() == nama.lower():
+                item['Harga'] = harga
+                item['Stok'] = stok
+                update_baris = True
+                break
+
+        if not update_baris:
+            menu.append({'Nama': nama, 'Harga': harga, 'Stok': stok})
+
+        simpan_menu_database(menu)
+        nakama.refresh_tabel_admin()
+        nakama.refresh_tabel_menu()
+        nakama.clear_form_admin()
+        messagebox.showinfo("Sukses", "Menu berhasil disimpan/diupdate.")
+
+    def hapus_menu_admin(nakama):
+        terpilih = nakama.tree_admin.selection()
+        if not terpilih:
+            messagebox.showwarning("Peringatan", "Pilih menu yang akan dihapus.")
+            return
+        
+        item = nakama.tree_admin.item(terpilih)
+        nama_hapus = item['values'][0]
+
+        konfirmasi = messagebox.askyesno("Konfirmasi", f"Yakin ingin menghapus menu '{nama_hapus}'?")
+        if konfirmasi:
+            menu = baca_menu()
+            menu = [m for m in menu if m['Nama'] != nama_hapus]
+            simpan_menu_database(menu)
+            nakama.refresh_tabel_admin()
+            nakama.refresh_tabel_menu()
+            nakama.clear_form_admin()
+
+    # menampilkan riwayat transaksi
+    def tampilkan_riwayat(nakama):
+        tombol_refresh = tk.Button(nakama.tab_riwayat,
+                                   text="Segarkan Data",
+                                   command=nakama.refresh_tabel_riwayat,
+                                   bg="#2196F3",
+                                   fg="white")
+        tombol_refresh.pack(fill=tk.X, padx=10, pady=5)
+
+        kolom_riwayat = ('No Transaksi', 'Tanggal', 'Detail', 'Total')
+        nakama.tree_riwayat = ttk.Treeview(nakama.tab_riwayat,
+                                          columns=kolom_riwayat,
+                                          show='headings')
+        
+        nakama.tree_riwayat.heading('No Transaksi', text='No Transaksi')
+        nakama.tree_riwayat.column("No Transaksi", width=120)
+        nakama.tree_riwayat.heading('Tanggal', text='Tanggal')
+        nakama.tree_riwayat.column("Tanggal", width=120)
+        nakama.tree_riwayat.heading('Detail', text='Detail Item')
+        nakama.tree_riwayat.column("Detail", width=200)
+        nakama.tree_riwayat.heading('Total', text='Total (Rp)')
+        nakama.tree_riwayat.column("Total", width=120)
+
+        nakama.tree_riwayat.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        nakama.refresh_tabel_riwayat()
+
+    def refresh_tabel_riwayat(nakama):
+        for baris in nakama.tree_riwayat.get_children():
+            nakama.tree_riwayat.delete(baris)
+        
+        if os.path.exists(file_transaksi):
+            with open(file_transaksi, mode='r') as file:
+                reader = csv.reader(file)
+                next(reader, None)
+
+                data = list(reader)
+                for baris in reversed(data):
+                    nakama.tree_riwayat.insert('', tk.END, values=baris)
 
 def main_app():
    root = tk.Tk()
