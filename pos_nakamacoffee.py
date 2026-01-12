@@ -82,6 +82,9 @@ class LoginWindow:
         nakama.entry_pass = tk.Entry(root, show="*")
         nakama.entry_pass.pack()
 
+        #MENAMBAH FITUR BIND KEY UNTUK TOMBOL ENTER DI KEYBOARD SAAT LOGIN
+        nakama.root.bind('<Return>', lambda event: nakama.login())
+
         tk.Button(root, text="Login", command=nakama.login).pack(pady=10)
 
     def login(nakama):
